@@ -1,1 +1,311 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no,address=no,email=no">
+<title>車両受け入れチェック</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:#F5F5F0;color:#1a1a1a;min-height:100vh}
+.header{background:#1F4E79;color:#fff;padding:16px 20px;position:sticky;top:0;z-index:100}
+.header h1{font-size:17px;font-weight:600;letter-spacing:.02em}
+.header-sub{font-size:12px;opacity:.7;margin-top:2px}
+.tab-bar{display:flex;background:#fff;border-bottom:1px solid #E0E0E0;position:sticky;top:57px;z-index:99}
+.tab{flex:1;padding:12px;font-size:14px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;color:#888}
+.tab.active{color:#1F4E79;border-bottom-color:#1F4E79;font-weight:600}
+.content{padding:16px;max-width:600px;margin:0 auto}
+.card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.scan-btn{width:100%;padding:18px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.scan-btn:active{background:#173d61}
+.scan-icon{width:22px;height:22px;flex-shrink:0}
+.cam-wrap{display:none;position:relative;width:100%;border-radius:10px;overflow:hidden;background:#000;margin-top:12px;aspect-ratio:4/3}
+.cam-wrap video{width:100%;height:100%;object-fit:cover}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-frame{width:50%;aspect-ratio:1;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.55)}
+.scan-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:500}
+.cancel-btn{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#666;font-size:14px;cursor:pointer;margin-top:8px;display:none}
+.result-box{display:none;margin-top:12px;background:#EBF5EB;border:1px solid #A8D5A2;border-radius:10px;padding:14px;text-align:center}
+.result-lbl{font-size:11px;color:#2E7D32;font-weight:600;letter-spacing:.04em;margin-bottom:6px}
+.result-val{font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:.04em;word-break:break-all}
+.rescan-link{font-size:13px;color:#1F4E79;margin-top:8px;cursor:pointer;text-decoration:underline;display:inline-block}
+.form-group{margin-bottom:14px}
+.form-label{font-size:13px;color:#666;margin-bottom:6px;display:block;font-weight:500}
+.form-input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff;color:#1a1a1a;-webkit-appearance:none}
+.form-input:focus{outline:none;border-color:#1F4E79;box-shadow:0 0 0 3px rgba(31,78,121,.1)}
+textarea.form-input{height:80px;resize:none}
+.check-item{padding:14px 0;border-bottom:1px solid #F0F0F0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.check-item:last-child{border-bottom:none}
+.check-info{flex:1}
+.check-name{font-size:15px;font-weight:500;color:#1a1a1a}
+.check-sub{font-size:12px;color:#999;margin-top:2px}
+.btn-group{display:flex;gap:6px;flex-shrink:0;margin-top:2px}
+.s-btn{padding:7px 14px;border-radius:99px;border:1px solid #ddd;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#666;white-space:nowrap}
+.s-btn:active{transform:scale(.95)}
+.s-btn.ok{background:#EBF5EB;color:#2E7D32;border-color:#A8D5A2}
+.s-btn.ng{background:#FDECEC;color:#C62828;border-color:#F5A5A5}
+.s-btn.na{background:#F5F5F5;color:#555;border-color:#ccc}
+.submit-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:4px}
+.submit-btn:active{background:#173d61}
+.page{display:none}.page.active{display:block}
+.result-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.result-summary{font-size:14px;color:#444;line-height:1.9}
+.copy-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#2E7D32;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.copy-btn.copied{background:#43A047}
+.copy-btn:active{opacity:.85}
+.copied-msg{display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-bottom:12px}
+.next-btn{width:100%;padding:14px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#555;font-size:15px;cursor:pointer}
+.next-btn:active{background:#F5F5F5}
+.guide-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+.step-num{width:28px;height:28px;border-radius:50%;background:#1F4E79;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.step-text{font-size:14px;color:#333;line-height:1.6;padding-top:4px}
+.step-text strong{color:#1F4E79}
+.ng-badge{display:inline-block;background:#FDECEC;color:#C62828;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
+.ok-badge{display:inline-block;background:#EBF5EB;color:#2E7D32;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
+</style>
+</head>
+<body>
 
+<div class="header">
+  <h1>車両受け入れチェック</h1>
+  <div class="header-sub">物流管理課</div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="sw('input')">入力</div>
+  <div class="tab" onclick="sw('guide')">PC貼り付け手順</div>
+</div>
+
+<div class="content">
+
+<div id="p-input" class="page active">
+  <div id="form-wrap">
+    <div class="card">
+      <div class="card-title">シャシ番号</div>
+      <button class="scan-btn" id="scan-btn" onclick="startScan()">
+        <svg class="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z"/></svg>
+        カメラでQRコードを読む
+      </button>
+      <div class="cam-wrap" id="cam-wrap">
+        <video id="video" playsinline autoplay muted></video>
+        <div class="scan-overlay">
+          <div class="scan-frame"></div>
+          <div class="scan-hint">QRコードを枠内に合わせる</div>
+        </div>
+      </div>
+      <button class="cancel-btn" id="cancel-btn" onclick="stopScan()">キャンセル</button>
+      <div class="result-box" id="result-box">
+        <div class="result-lbl">読み取り完了</div>
+        <div class="result-val" id="result-val"></div>
+        <span class="rescan-link" onclick="reScan()">読み直す</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">担当者</div>
+      <div class="form-group">
+        <input type="text" class="form-input" id="op" placeholder="氏名を入力" autocomplete="off" autocorrect="off">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">外観・キズチェック</div>
+      <div id="ext"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">受け入れ確認</div>
+      <div id="rec"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">備考</div>
+      <textarea class="form-input" id="rem" placeholder="キズ詳細・その他気になる点"></textarea>
+    </div>
+
+    <button class="submit-btn" onclick="doSubmit()">確認して記録へ</button>
+    <div style="height:32px"></div>
+  </div>
+
+  <div id="result-wrap" class="page">
+    <div class="result-card">
+      <div class="card-title" style="margin-bottom:14px">記録内容</div>
+      <div class="result-summary" id="summary"></div>
+    </div>
+    <button class="copy-btn" id="copy-btn" onclick="doCopy()">行データをコピー（Excelに貼り付け用）</button>
+    <div class="copied-msg" id="copied-msg">コピーしました！マスターPCで Ctrl+V</div>
+    <button class="next-btn" onclick="doReset()">次の車両を入力</button>
+    <div style="height:32px"></div>
+  </div>
+</div>
+
+<div id="p-guide" class="page">
+  <div class="card" style="margin-top:4px">
+    <div class="card-title" style="margin-bottom:16px">マスターPCへの貼り付け手順</div>
+    <div class="guide-step"><div class="step-num">1</div><div class="step-text">iPhoneでチェック入力 → <strong>「行データをコピー」</strong>をタップ</div></div>
+    <div class="guide-step"><div class="step-num">2</div><div class="step-text">マスターPCで<strong>Excelを開く</strong></div></div>
+    <div class="guide-step"><div class="step-num">3</div><div class="step-text">「受け入れ記録」シートの<strong>次の空行のA列</strong>をクリック</div></div>
+    <div class="guide-step"><div class="step-num">4</div><div class="step-text"><strong>Ctrl+V</strong> で貼り付け → 完了</div></div>
+    <div class="guide-step" style="margin-bottom:0"><div class="step-num">5</div><div class="step-text">「集計」シートに<strong>自動反映</strong>される</div></div>
+  </div>
+  <div style="height:32px"></div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+const extItems=[
+  {id:'e1',label:'フロント',sub:'バンパー・ボンネット'},
+  {id:'e2',label:'サイド左',sub:'ドア・フェンダー'},
+  {id:'e3',label:'サイド右',sub:'ドア・フェンダー'},
+  {id:'e4',label:'リア',sub:'バンパー・トランク'},
+  {id:'e5',label:'ルーフ',sub:'天井部'},
+];
+const recItems=[
+  {id:'r1',label:'書類確認',sub:'車検証・保険証等'},
+  {id:'r2',label:'鍵受け取り',sub:'スペアキー含む'},
+  {id:'r3',label:'タイヤ状態',sub:'空気圧・摩耗'},
+  {id:'r4',label:'燃料残量',sub:'計器確認'},
+];
+let st={},lastRow='',scannedVid='',stream=null,rafId=null;
+
+function buildChecks(items,cid){
+  const el=document.getElementById(cid);el.innerHTML='';
+  items.forEach(it=>{
+    st[it.id]=null;
+    el.innerHTML+=`<div class="check-item">
+      <div class="check-info"><div class="check-name">${it.label}</div><div class="check-sub">${it.sub}</div></div>
+      <div class="btn-group">
+        <button class="s-btn" id="b-ok-${it.id}" onclick="setSt('${it.id}','ok')">OK</button>
+        <button class="s-btn" id="b-ng-${it.id}" onclick="setSt('${it.id}','ng')">NG</button>
+        <button class="s-btn" id="b-na-${it.id}" onclick="setSt('${it.id}','na')">—</button>
+      </div></div>`;
+  });
+}
+
+function setSt(id,val){
+  st[id]=val;
+  ['ok','ng','na'].forEach(s=>{
+    const b=document.getElementById('b-'+s+'-'+id);
+    if(b)b.className='s-btn'+(s===val?' '+s:'');
+  });
+}
+
+async function startScan(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}}});
+    const video=document.getElementById('video');
+    video.srcObject=stream;
+    await video.play();
+    document.getElementById('cam-wrap').style.display='block';
+    document.getElementById('cancel-btn').style.display='block';
+    document.getElementById('scan-btn').style.display='none';
+    document.getElementById('result-box').style.display='none';
+    scanLoop();
+  }catch(e){
+    alert('カメラを許可してください\nSafari → このページの設定 → カメラ → 許可');
+  }
+}
+
+function scanLoop(){
+  const video=document.getElementById('video');
+  if(video.readyState>=2){
+    const c=document.createElement('canvas');
+    c.width=video.videoWidth;c.height=video.videoHeight;
+    const ctx=c.getContext('2d');
+    ctx.drawImage(video,0,0);
+    const img=ctx.getImageData(0,0,c.width,c.height);
+    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
+    if(code&&code.data){
+      stopScan();
+      const clean=code.data.replace(/[^A-Za-z0-9]/g,'');
+      scannedVid=clean||code.data;
+      document.getElementById('result-val').textContent=scannedVid;
+      document.getElementById('result-box').style.display='block';
+      return;
+    }
+  }
+  rafId=requestAnimationFrame(scanLoop);
+}
+
+function stopScan(){
+  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  document.getElementById('cam-wrap').style.display='none';
+  document.getElementById('cancel-btn').style.display='none';
+  document.getElementById('scan-btn').style.display='flex';
+}
+
+function reScan(){
+  scannedVid='';
+  document.getElementById('result-box').style.display='none';
+  startScan();
+}
+
+function sw(tab){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='input')||(i===1&&tab==='guide')));
+  document.getElementById('p-input').classList.toggle('active',tab==='input');
+  document.getElementById('p-guide').classList.toggle('active',tab==='guide');
+}
+
+function doSubmit(){
+  if(!scannedVid){alert('QRコードを読み取ってください');return;}
+  const op=document.getElementById('op').value.trim();
+  if(!op){alert('担当者名を入力してください');return;}
+  const all=[...extItems,...recItems];
+  const unchecked=all.filter(i=>st[i.id]===null);
+  if(unchecked.length>0&&!confirm('未確認 '+unchecked.length+'件あります。このまま進みますか？'))return;
+  const now=new Date();
+  const dt=now.toLocaleDateString('ja-JP')+' '+now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+  const ids=['e1','e2','e3','e4','e5','r1','r2','r3','r4'];
+  const checks=ids.map(id=>st[id]?st[id].toUpperCase():'');
+  const ngItems=all.filter(i=>st[i.id]==='ng').map(i=>i.label);
+  const judge=ngItems.length>0?'要確認':'異常なし';
+  const rem=document.getElementById('rem').value;
+  lastRow=[dt,scannedVid,op,...checks,judge,rem].join('\t');
+  const judgeHtml=ngItems.length>0
+    ?`<span class="ng-badge">要確認</span> ${ngItems.join('、')}`
+    :`<span class="ok-badge">異常なし</span>`;
+  document.getElementById('summary').innerHTML=
+    `シャシ番号: <strong>${scannedVid}</strong><br>`+
+    `担当者: ${op}<br>`+
+    `日時: ${dt}<br>`+
+    `判定: ${judgeHtml}`+
+    (rem?`<br>備考: ${rem}`:'');
+  document.getElementById('form-wrap').style.display='none';
+  document.getElementById('result-wrap').classList.add('active');
+}
+
+function doCopy(){
+  navigator.clipboard.writeText(lastRow).then(()=>{
+    const btn=document.getElementById('copy-btn');
+    btn.textContent='コピー済み ✓';btn.classList.add('copied');
+    document.getElementById('copied-msg').style.display='block';
+  }).catch(()=>prompt('以下をコピーしてExcelに貼り付けてください：',lastRow));
+}
+
+function doReset(){
+  st={};scannedVid='';lastRow='';
+  document.getElementById('result-box').style.display='none';
+  document.getElementById('op').value='';
+  document.getElementById('rem').value='';
+  buildChecks(extItems,'ext');
+  buildChecks(recItems,'rec');
+  document.getElementById('form-wrap').style.display='block';
+  document.getElementById('result-wrap').classList.remove('active');
+  const btn=document.getElementById('copy-btn');
+  btn.textContent='行データをコピー（Excelに貼り付け用）';
+  btn.classList.remove('copied');
+  document.getElementById('copied-msg').style.display='none';
+  window.scrollTo(0,0);
+}
+
+buildChecks(extItems,'ext');
+buildChecks(recItems,'rec');
+</script>
+</body>
+</html>
