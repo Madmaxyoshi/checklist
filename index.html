@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -11,7 +12,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:#F5F5F0;color:#1a1a1a;min-height:100vh}
 .header{background:#1F4E79;color:#fff;padding:16px 20px;position:sticky;top:0;z-index:100}
-.header h1{font-size:17px;font-weight:600;letter-spacing:.02em}
+.header h1{font-size:17px;font-weight:600}
 .header-sub{font-size:12px;opacity:.7;margin-top:2px}
 .tab-bar{display:flex;background:#fff;border-bottom:1px solid #E0E0E0;position:sticky;top:57px;z-index:99}
 .tab{flex:1;padding:12px;font-size:14px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;color:#888}
@@ -19,76 +20,62 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .content{padding:16px;max-width:600px;margin:0 auto}
 .card{background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .card-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-.scan-btn{width:100%;padding:18px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.scan-btn{width:100%;padding:18px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer}
 .scan-btn:active{background:#173d61}
-.scan-icon{width:22px;height:22px;flex-shrink:0}
-.cam-wrap{display:none;position:relative;width:100%;border-radius:10px;overflow:hidden;background:#000;margin-top:12px;aspect-ratio:4/3}
-.cam-wrap video{width:100%;height:100%;object-fit:cover}
+.cam-wrap{display:none;position:relative;width:100%;border-radius:10px;overflow:hidden;background:#000;margin-top:12px}
+.cam-wrap video{width:100%;display:block}
 .scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.scan-frame{width:50%;aspect-ratio:1;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.55)}
+.scan-frame{width:60%;aspect-ratio:1;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
 .scan-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:500}
 .cancel-btn{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#666;font-size:14px;cursor:pointer;margin-top:8px;display:none}
 .result-box{display:none;margin-top:12px;background:#EBF5EB;border:1px solid #A8D5A2;border-radius:10px;padding:14px;text-align:center}
 .result-lbl{font-size:11px;color:#2E7D32;font-weight:600;letter-spacing:.04em;margin-bottom:6px}
-.result-val{font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:.04em;word-break:break-all}
+.result-val{font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:.04em;word-break:break-all}
 .rescan-link{font-size:13px;color:#1F4E79;margin-top:8px;cursor:pointer;text-decoration:underline;display:inline-block}
-.form-group{margin-bottom:14px}
-.form-label{font-size:13px;color:#666;margin-bottom:6px;display:block;font-weight:500}
 .form-input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff;color:#1a1a1a;-webkit-appearance:none}
-.form-input:focus{outline:none;border-color:#1F4E79;box-shadow:0 0 0 3px rgba(31,78,121,.1)}
+.form-input:focus{outline:none;border-color:#1F4E79}
 textarea.form-input{height:80px;resize:none}
 .check-item{padding:14px 0;border-bottom:1px solid #F0F0F0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .check-item:last-child{border-bottom:none}
 .check-info{flex:1}
-.check-name{font-size:15px;font-weight:500;color:#1a1a1a}
+.check-name{font-size:15px;font-weight:500}
 .check-sub{font-size:12px;color:#999;margin-top:2px}
-.btn-group{display:flex;gap:6px;flex-shrink:0;margin-top:2px}
+.btn-group{display:flex;gap:6px;flex-shrink:0}
 .s-btn{padding:7px 14px;border-radius:99px;border:1px solid #ddd;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#666;white-space:nowrap}
-.s-btn:active{transform:scale(.95)}
 .s-btn.ok{background:#EBF5EB;color:#2E7D32;border-color:#A8D5A2}
 .s-btn.ng{background:#FDECEC;color:#C62828;border-color:#F5A5A5}
 .s-btn.na{background:#F5F5F5;color:#555;border-color:#ccc}
 .submit-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:4px}
-.submit-btn:active{background:#173d61}
+.copy-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#2E7D32;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.copy-btn.copied{background:#43A047}
+.copied-msg{display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-bottom:12px}
+.next-btn{width:100%;padding:14px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#555;font-size:15px;cursor:pointer}
 .page{display:none}.page.active{display:block}
 .result-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .result-summary{font-size:14px;color:#444;line-height:1.9}
-.copy-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#2E7D32;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px}
-.copy-btn.copied{background:#43A047}
-.copy-btn:active{opacity:.85}
-.copied-msg{display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-bottom:12px}
-.next-btn{width:100%;padding:14px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#555;font-size:15px;cursor:pointer}
-.next-btn:active{background:#F5F5F5}
+.ng-badge{display:inline-block;background:#FDECEC;color:#C62828;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
+.ok-badge{display:inline-block;background:#EBF5EB;color:#2E7D32;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
 .guide-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
 .step-num{width:28px;height:28px;border-radius:50%;background:#1F4E79;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
 .step-text{font-size:14px;color:#333;line-height:1.6;padding-top:4px}
 .step-text strong{color:#1F4E79}
-.ng-badge{display:inline-block;background:#FDECEC;color:#C62828;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
-.ok-badge{display:inline-block;background:#EBF5EB;color:#2E7D32;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
 </style>
 </head>
 <body>
-
 <div class="header">
   <h1>車両受け入れチェック</h1>
   <div class="header-sub">物流管理課</div>
 </div>
-
 <div class="tab-bar">
   <div class="tab active" onclick="sw('input')">入力</div>
   <div class="tab" onclick="sw('guide')">PC貼り付け手順</div>
 </div>
-
 <div class="content">
-
 <div id="p-input" class="page active">
   <div id="form-wrap">
     <div class="card">
       <div class="card-title">シャシ番号</div>
-      <button class="scan-btn" id="scan-btn" onclick="startScan()">
-        <svg class="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h2v2h-2zM19 15h2v2h-2zM15 19h2v2h-2zM19 19h2v2h-2z"/></svg>
-        カメラでQRコードを読む
-      </button>
+      <button class="scan-btn" id="scan-btn" onclick="startScan()">カメラでQRコードを読む</button>
       <div class="cam-wrap" id="cam-wrap">
         <video id="video" playsinline autoplay muted></video>
         <div class="scan-overlay">
@@ -103,33 +90,25 @@ textarea.form-input{height:80px;resize:none}
         <span class="rescan-link" onclick="reScan()">読み直す</span>
       </div>
     </div>
-
     <div class="card">
       <div class="card-title">担当者</div>
-      <div class="form-group">
-        <input type="text" class="form-input" id="op" placeholder="氏名を入力" autocomplete="off" autocorrect="off">
-      </div>
+      <input type="text" class="form-input" id="op" placeholder="氏名を入力" autocomplete="off" autocorrect="off">
     </div>
-
     <div class="card">
       <div class="card-title">外観・キズチェック</div>
       <div id="ext"></div>
     </div>
-
     <div class="card">
       <div class="card-title">受け入れ確認</div>
       <div id="rec"></div>
     </div>
-
     <div class="card">
       <div class="card-title">備考</div>
-      <textarea class="form-input" id="rem" placeholder="キズ詳細・その他気になる点"></textarea>
+      <textarea class="form-input" id="rem" placeholder="キズ詳細・その他"></textarea>
     </div>
-
     <button class="submit-btn" onclick="doSubmit()">確認して記録へ</button>
     <div style="height:32px"></div>
   </div>
-
   <div id="result-wrap" class="page">
     <div class="result-card">
       <div class="card-title" style="margin-bottom:14px">記録内容</div>
@@ -141,7 +120,6 @@ textarea.form-input{height:80px;resize:none}
     <div style="height:32px"></div>
   </div>
 </div>
-
 <div id="p-guide" class="page">
   <div class="card" style="margin-top:4px">
     <div class="card-title" style="margin-bottom:16px">マスターPCへの貼り付け手順</div>
@@ -153,10 +131,9 @@ textarea.form-input{height:80px;resize:none}
   </div>
   <div style="height:32px"></div>
 </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@1.1.5/dist/reader/zxing_reader.min.js"></script>
 <script>
 const extItems=[
   {id:'e1',label:'フロント',sub:'バンパー・ボンネット'},
@@ -171,7 +148,15 @@ const recItems=[
   {id:'r3',label:'タイヤ状態',sub:'空気圧・摩耗'},
   {id:'r4',label:'燃料残量',sub:'計器確認'},
 ];
-let st={},lastRow='',scannedVid='',stream=null,rafId=null;
+let st={},lastRow='',scannedVid='',stream=null,rafId=null,reader=null;
+
+async function initReader(){
+  try{
+    const zxing=await ZXingWASM.getZXingModule();
+    reader=zxing;
+  }catch(e){console.log('zxing init error',e);}
+}
+initReader();
 
 function buildChecks(items,cid){
   const el=document.getElementById(cid);el.innerHTML='';
@@ -197,7 +182,9 @@ function setSt(id,val){
 
 async function startScan(){
   try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280}}});
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}
+    });
     const video=document.getElementById('video');
     video.srcObject=stream;
     await video.play();
@@ -213,21 +200,25 @@ async function startScan(){
 
 function scanLoop(){
   const video=document.getElementById('video');
-  if(video.readyState>=2){
+  if(video.readyState>=2 && video.videoWidth>0){
     const c=document.createElement('canvas');
-    c.width=video.videoWidth;c.height=video.videoHeight;
+    c.width=video.videoWidth;
+    c.height=video.videoHeight;
     const ctx=c.getContext('2d');
     ctx.drawImage(video,0,0);
-    const img=ctx.getImageData(0,0,c.width,c.height);
-    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'dontInvert'});
-    if(code&&code.data){
-      stopScan();
-      const clean=code.data.replace(/[^A-Za-z0-9]/g,'');
-      scannedVid=clean||code.data;
-      document.getElementById('result-val').textContent=scannedVid;
-      document.getElementById('result-box').style.display='block';
-      return;
-    }
+
+    // jsQRでまず試す
+    try{
+      const imgData=ctx.getImageData(0,0,c.width,c.height);
+      if(typeof jsQR !== 'undefined'){
+        const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
+        if(code&&code.data){
+          stopScan();
+          setResult(code.data);
+          return;
+        }
+      }
+    }catch(e){}
   }
   rafId=requestAnimationFrame(scanLoop);
 }
@@ -237,7 +228,14 @@ function stopScan(){
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
   document.getElementById('cam-wrap').style.display='none';
   document.getElementById('cancel-btn').style.display='none';
-  document.getElementById('scan-btn').style.display='flex';
+  document.getElementById('scan-btn').style.display='block';
+}
+
+function setResult(val){
+  scannedVid=val.replace(/[^A-Za-z0-9\-]/g,'');
+  if(!scannedVid)scannedVid=val;
+  document.getElementById('result-val').textContent=scannedVid;
+  document.getElementById('result-box').style.display='block';
 }
 
 function reScan(){
@@ -271,10 +269,7 @@ function doSubmit(){
     ?`<span class="ng-badge">要確認</span> ${ngItems.join('、')}`
     :`<span class="ok-badge">異常なし</span>`;
   document.getElementById('summary').innerHTML=
-    `シャシ番号: <strong>${scannedVid}</strong><br>`+
-    `担当者: ${op}<br>`+
-    `日時: ${dt}<br>`+
-    `判定: ${judgeHtml}`+
+    `シャシ番号: <strong>${scannedVid}</strong><br>担当者: ${op}<br>日時: ${dt}<br>判定: ${judgeHtml}`+
     (rem?`<br>備考: ${rem}`:'');
   document.getElementById('form-wrap').style.display='none';
   document.getElementById('result-wrap').classList.add('active');
@@ -307,5 +302,8 @@ function doReset(){
 buildChecks(extItems,'ext');
 buildChecks(recItems,'rec');
 </script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </body>
 </html>
+
+  
