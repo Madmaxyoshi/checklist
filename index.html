@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -25,16 +24,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .cam-wrap{display:none;position:relative;width:100%;border-radius:10px;overflow:hidden;background:#000;margin-top:12px}
 .cam-wrap video{width:100%;display:block}
 .scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.scan-frame{width:60%;aspect-ratio:1;border:3px solid #fff;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+.scan-frame{width:70%;aspect-ratio:1;border:3px solid #4CAF50;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
 .scan-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:500}
+.scan-status{position:absolute;top:12px;left:0;right:0;text-align:center;color:#fff;font-size:12px;background:rgba(0,0,0,.4);padding:4px}
 .cancel-btn{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#666;font-size:14px;cursor:pointer;margin-top:8px;display:none}
 .result-box{display:none;margin-top:12px;background:#EBF5EB;border:1px solid #A8D5A2;border-radius:10px;padding:14px;text-align:center}
 .result-lbl{font-size:11px;color:#2E7D32;font-weight:600;letter-spacing:.04em;margin-bottom:6px}
 .result-val{font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:.04em;word-break:break-all}
 .rescan-link{font-size:13px;color:#1F4E79;margin-top:8px;cursor:pointer;text-decoration:underline;display:inline-block}
-.form-input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff;color:#1a1a1a;-webkit-appearance:none}
+.form-input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff;color:#1a1a1a;-webkit-appearance:none;margin-bottom:10px}
+.form-input:last-child{margin-bottom:0}
 .form-input:focus{outline:none;border-color:#1F4E79}
 textarea.form-input{height:80px;resize:none}
+.form-label{font-size:13px;color:#666;margin-bottom:5px;display:block;font-weight:500}
 .check-item{padding:14px 0;border-bottom:1px solid #F0F0F0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .check-item:last-child{border-bottom:none}
 .check-info{flex:1}
@@ -74,14 +76,15 @@ textarea.form-input{height:80px;resize:none}
 <div id="p-input" class="page active">
   <div id="form-wrap">
     <div class="card">
-      <div class="card-title">シャシ番号</div>
+      <div class="card-title">QRコード読み取り</div>
       <button class="scan-btn" id="scan-btn" onclick="startScan()">カメラでQRコードを読む</button>
       <div class="cam-wrap" id="cam-wrap">
         <video id="video" playsinline autoplay muted></video>
         <div class="scan-overlay">
           <div class="scan-frame"></div>
-          <div class="scan-hint">QRコードを枠内に合わせる</div>
+          <div class="scan-hint">QRコードを緑の枠内に合わせる</div>
         </div>
+        <div class="scan-status" id="scan-status">読み取り中...</div>
       </div>
       <button class="cancel-btn" id="cancel-btn" onclick="stopScan()">キャンセル</button>
       <div class="result-box" id="result-box">
@@ -89,6 +92,15 @@ textarea.form-input{height:80px;resize:none}
         <div class="result-val" id="result-val"></div>
         <span class="rescan-link" onclick="reScan()">読み直す</span>
       </div>
+    </div>
+    <div class="card">
+      <div class="card-title">車両情報</div>
+      <label class="form-label">製番</label>
+      <input type="text" class="form-input" id="seiban" placeholder="例: 25-9A5804" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <label class="form-label">型式</label>
+      <input type="text" class="form-input" id="katashiki" placeholder="例: CYJ77DAWXD" autocomplete="off" autocorrect="off" autocapitalize="off">
+      <label class="form-label">車番</label>
+      <input type="text" class="form-input" id="shaban" placeholder="例: 7015259" autocomplete="off" autocorrect="off" autocapitalize="off">
     </div>
     <div class="card">
       <div class="card-title">担当者</div>
@@ -133,7 +145,7 @@ textarea.form-input{height:80px;resize:none}
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@1.1.5/dist/reader/zxing_reader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const extItems=[
   {id:'e1',label:'フロント',sub:'バンパー・ボンネット'},
@@ -148,15 +160,7 @@ const recItems=[
   {id:'r3',label:'タイヤ状態',sub:'空気圧・摩耗'},
   {id:'r4',label:'燃料残量',sub:'計器確認'},
 ];
-let st={},lastRow='',scannedVid='',stream=null,rafId=null,reader=null;
-
-async function initReader(){
-  try{
-    const zxing=await ZXingWASM.getZXingModule();
-    reader=zxing;
-  }catch(e){console.log('zxing init error',e);}
-}
-initReader();
+let st={},lastRow='',scannedData=null,stream=null,rafId=null;
 
 function buildChecks(items,cid){
   const el=document.getElementById(cid);el.innerHTML='';
@@ -192,54 +196,60 @@ async function startScan(){
     document.getElementById('cancel-btn').style.display='block';
     document.getElementById('scan-btn').style.display='none';
     document.getElementById('result-box').style.display='none';
+    document.getElementById('scan-status').textContent='読み取り中...';
     scanLoop();
   }catch(e){
-    alert('カメラを許可してください\nSafari → このページの設定 → カメラ → 許可');
+    alert('カメラを許可してください');
   }
 }
 
+let frameCount=0;
 function scanLoop(){
   const video=document.getElementById('video');
-  if(video.readyState>=2 && video.videoWidth>0){
+  frameCount++;
+  if(frameCount%2===0 && video.readyState>=2 && video.videoWidth>0){
     const c=document.createElement('canvas');
     c.width=video.videoWidth;
     c.height=video.videoHeight;
     const ctx=c.getContext('2d');
     ctx.drawImage(video,0,0);
-
-    // jsQRでまず試す
-    try{
-      const imgData=ctx.getImageData(0,0,c.width,c.height);
-      if(typeof jsQR !== 'undefined'){
-        const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
-        if(code&&code.data){
-          stopScan();
-          setResult(code.data);
-          return;
-        }
-      }
-    }catch(e){}
+    const imgData=ctx.getImageData(0,0,c.width,c.height);
+    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
+    if(code&&code.data){
+      stopScan();
+      parseQR(code.data);
+      return;
+    }
+    const status=document.getElementById('scan-status');
+    if(status)status.textContent='読み取り中... ('+Math.floor(frameCount/2)+'フレーム)';
   }
   rafId=requestAnimationFrame(scanLoop);
+}
+
+function parseQR(raw){
+  scannedData=raw;
+  // 製番・型式・車番をパース試みる
+  const seiban=raw.match(/製番[:\s]*([A-Za-z0-9\-]+)/);
+  const katashiki=raw.match(/型式[:\s]*([A-Za-z0-9\-]+)/);
+  const shaban=raw.match(/車番[:\s]*([A-Za-z0-9\-]+)/);
+  if(seiban) document.getElementById('seiban').value=seiban[1];
+  if(katashiki) document.getElementById('katashiki').value=katashiki[1];
+  if(shaban) document.getElementById('shaban').value=shaban[1];
+  document.getElementById('result-val').textContent=raw;
+  document.getElementById('result-box').style.display='block';
 }
 
 function stopScan(){
   if(rafId){cancelAnimationFrame(rafId);rafId=null;}
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  frameCount=0;
   document.getElementById('cam-wrap').style.display='none';
   document.getElementById('cancel-btn').style.display='none';
   document.getElementById('scan-btn').style.display='block';
 }
 
-function setResult(val){
-  scannedVid=val.replace(/[^A-Za-z0-9\-]/g,'');
-  if(!scannedVid)scannedVid=val;
-  document.getElementById('result-val').textContent=scannedVid;
-  document.getElementById('result-box').style.display='block';
-}
-
 function reScan(){
-  scannedVid='';
+  scannedData=null;
   document.getElementById('result-box').style.display='none';
   startScan();
 }
@@ -251,8 +261,11 @@ function sw(tab){
 }
 
 function doSubmit(){
-  if(!scannedVid){alert('QRコードを読み取ってください');return;}
+  const seiban=document.getElementById('seiban').value.trim();
+  const katashiki=document.getElementById('katashiki').value.trim();
+  const shaban=document.getElementById('shaban').value.trim();
   const op=document.getElementById('op').value.trim();
+  if(!seiban||!katashiki||!shaban){alert('製番・型式・車番を入力してください');return;}
   if(!op){alert('担当者名を入力してください');return;}
   const all=[...extItems,...recItems];
   const unchecked=all.filter(i=>st[i.id]===null);
@@ -264,12 +277,12 @@ function doSubmit(){
   const ngItems=all.filter(i=>st[i.id]==='ng').map(i=>i.label);
   const judge=ngItems.length>0?'要確認':'異常なし';
   const rem=document.getElementById('rem').value;
-  lastRow=[dt,scannedVid,op,...checks,judge,rem].join('\t');
+  lastRow=[dt,seiban,katashiki,shaban,op,...checks,judge,rem].join('\t');
   const judgeHtml=ngItems.length>0
     ?`<span class="ng-badge">要確認</span> ${ngItems.join('、')}`
     :`<span class="ok-badge">異常なし</span>`;
   document.getElementById('summary').innerHTML=
-    `シャシ番号: <strong>${scannedVid}</strong><br>担当者: ${op}<br>日時: ${dt}<br>判定: ${judgeHtml}`+
+    `製番: <strong>${seiban}</strong><br>型式: <strong>${katashiki}</strong><br>車番: <strong>${shaban}</strong><br>担当者: ${op}<br>日時: ${dt}<br>判定: ${judgeHtml}`+
     (rem?`<br>備考: ${rem}`:'');
   document.getElementById('form-wrap').style.display='none';
   document.getElementById('result-wrap').classList.add('active');
@@ -284,8 +297,11 @@ function doCopy(){
 }
 
 function doReset(){
-  st={};scannedVid='';lastRow='';
+  st={};scannedData=null;lastRow='';
   document.getElementById('result-box').style.display='none';
+  document.getElementById('seiban').value='';
+  document.getElementById('katashiki').value='';
+  document.getElementById('shaban').value='';
   document.getElementById('op').value='';
   document.getElementById('rem').value='';
   buildChecks(extItems,'ext');
@@ -302,8 +318,10 @@ function doReset(){
 buildChecks(extItems,'ext');
 buildChecks(recItems,'rec');
 </script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 </body>
 </html>
 
+
   
+
+ 
