@@ -26,11 +26,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
 .scan-frame{width:70%;aspect-ratio:1;border:3px solid #4CAF50;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.45)}
 .scan-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;color:#fff;font-size:13px;font-weight:500}
-.scan-status{position:absolute;top:12px;left:0;right:0;text-align:center;color:#fff;font-size:12px;background:rgba(0,0,0,.4);padding:4px}
 .cancel-btn{width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#666;font-size:14px;cursor:pointer;margin-top:8px;display:none}
 .result-box{display:none;margin-top:12px;background:#EBF5EB;border:1px solid #A8D5A2;border-radius:10px;padding:14px;text-align:center}
 .result-lbl{font-size:11px;color:#2E7D32;font-weight:600;letter-spacing:.04em;margin-bottom:6px}
-.result-val{font-size:20px;font-weight:700;color:#1a1a1a;letter-spacing:.04em;word-break:break-all}
+.result-val{font-size:16px;font-weight:700;color:#1a1a1a;word-break:break-all}
 .rescan-link{font-size:13px;color:#1F4E79;margin-top:8px;cursor:pointer;text-decoration:underline;display:inline-block}
 .form-input{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;background:#fff;color:#1a1a1a;-webkit-appearance:none;margin-bottom:10px}
 .form-input:last-child{margin-bottom:0}
@@ -48,19 +47,15 @@ textarea.form-input{height:80px;resize:none}
 .s-btn.ng{background:#FDECEC;color:#C62828;border-color:#F5A5A5}
 .s-btn.na{background:#F5F5F5;color:#555;border-color:#ccc}
 .submit-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-top:4px}
-.copy-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#2E7D32;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px}
-.copy-btn.copied{background:#43A047}
-.copied-msg{display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-bottom:12px}
+.mail-btn{width:100%;padding:16px;border-radius:10px;border:none;background:#D84315;color:#fff;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.mail-btn:active{background:#BF360C}
 .next-btn{width:100%;padding:14px;border-radius:10px;border:1px solid #ddd;background:#fff;color:#555;font-size:15px;cursor:pointer}
 .page{display:none}.page.active{display:block}
 .result-card{background:#fff;border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .result-summary{font-size:14px;color:#444;line-height:1.9}
 .ng-badge{display:inline-block;background:#FDECEC;color:#C62828;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
 .ok-badge{display:inline-block;background:#EBF5EB;color:#2E7D32;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}
-.guide-step{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
-.step-num{width:28px;height:28px;border-radius:50%;background:#1F4E79;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
-.step-text{font-size:14px;color:#333;line-height:1.6;padding-top:4px}
-.step-text strong{color:#1F4E79}
+.sent-msg{display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -70,7 +65,7 @@ textarea.form-input{height:80px;resize:none}
 </div>
 <div class="tab-bar">
   <div class="tab active" onclick="sw('input')">入力</div>
-  <div class="tab" onclick="sw('guide')">PC貼り付け手順</div>
+  <div class="tab" onclick="sw('guide')">メール設定</div>
 </div>
 <div class="content">
 <div id="p-input" class="page active">
@@ -84,7 +79,6 @@ textarea.form-input{height:80px;resize:none}
           <div class="scan-frame"></div>
           <div class="scan-hint">QRコードを緑の枠内に合わせる</div>
         </div>
-        <div class="scan-status" id="scan-status">読み取り中...</div>
       </div>
       <button class="cancel-btn" id="cancel-btn" onclick="stopScan()">キャンセル</button>
       <div class="result-box" id="result-box">
@@ -126,22 +120,30 @@ textarea.form-input{height:80px;resize:none}
       <div class="card-title" style="margin-bottom:14px">記録内容</div>
       <div class="result-summary" id="summary"></div>
     </div>
-    <button class="copy-btn" id="copy-btn" onclick="doCopy()">行データをコピー（Excelに貼り付け用）</button>
-    <div class="copied-msg" id="copied-msg">コピーしました！マスターPCで Ctrl+V</div>
+    <button class="mail-btn" onclick="sendMail()">Gmailで送信</button>
+    <div class="sent-msg" id="sent-msg">メールアプリが開きます。送信ボタンを押してください。</div>
     <button class="next-btn" onclick="doReset()">次の車両を入力</button>
     <div style="height:32px"></div>
   </div>
 </div>
 <div id="p-guide" class="page">
   <div class="card" style="margin-top:4px">
-    <div class="card-title" style="margin-bottom:16px">マスターPCへの貼り付け手順</div>
-    <div class="guide-step"><div class="step-num">1</div><div class="step-text">iPhoneでチェック入力 → <strong>「行データをコピー」</strong>をタップ</div></div>
-    <div class="guide-step"><div class="step-num">2</div><div class="step-text">マスターPCで<strong>Excelを開く</strong></div></div>
-    <div class="guide-step"><div class="step-num">3</div><div class="step-text">「受け入れ記録」シートの<strong>次の空行のA列</strong>をクリック</div></div>
-    <div class="guide-step"><div class="step-num">4</div><div class="step-text"><strong>Ctrl+V</strong> で貼り付け → 完了</div></div>
-    <div class="guide-step" style="margin-bottom:0"><div class="step-num">5</div><div class="step-text">「集計」シートに<strong>自動反映</strong>される</div></div>
+    <div class="card-title" style="margin-bottom:12px">送信先メールアドレス</div>
+    <label class="form-label">自分のGmailアドレスを入力</label>
+    <input type="text" class="form-input" id="mail-to" placeholder="例: yourname@gmail.com" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <button style="width:100%;padding:12px;border-radius:10px;border:none;background:#1F4E79;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:4px" onclick="saveMail()">保存</button>
+    <div id="mail-saved" style="display:none;text-align:center;font-size:13px;color:#2E7D32;font-weight:600;margin-top:8px">保存しました</div>
   </div>
-  <div style="height:32px"></div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">使い方</div>
+    <div style="font-size:14px;color:#444;line-height:2">
+      1. QRを読む（または手入力）<br>
+      2. チェック入力<br>
+      3. 「Gmailで送信」タップ<br>
+      4. メールアプリが開く → 送信<br>
+      5. PCのGmailで受信 → Excelに貼り付け
+    </div>
+  </div>
 </div>
 </div>
 
@@ -160,7 +162,7 @@ const recItems=[
   {id:'r3',label:'タイヤ状態',sub:'空気圧・摩耗'},
   {id:'r4',label:'燃料残量',sub:'計器確認'},
 ];
-let st={},lastRow='',scannedData=null,stream=null,rafId=null;
+let st={},mailBody='',stream=null,rafId=null;
 
 function buildChecks(items,cid){
   const el=document.getElementById(cid);el.innerHTML='';
@@ -186,9 +188,7 @@ function setSt(id,val){
 
 async function startScan(){
   try{
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}
-    });
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
     const video=document.getElementById('video');
     video.srcObject=stream;
     await video.play();
@@ -196,45 +196,38 @@ async function startScan(){
     document.getElementById('cancel-btn').style.display='block';
     document.getElementById('scan-btn').style.display='none';
     document.getElementById('result-box').style.display='none';
-    document.getElementById('scan-status').textContent='読み取り中...';
     scanLoop();
-  }catch(e){
-    alert('カメラを許可してください');
-  }
+  }catch(e){alert('カメラを許可してください');}
 }
 
-let frameCount=0;
+let fc=0;
 function scanLoop(){
   const video=document.getElementById('video');
-  frameCount++;
-  if(frameCount%2===0 && video.readyState>=2 && video.videoWidth>0){
+  fc++;
+  if(fc%2===0&&video.readyState>=2&&video.videoWidth>0){
     const c=document.createElement('canvas');
-    c.width=video.videoWidth;
-    c.height=video.videoHeight;
+    c.width=video.videoWidth;c.height=video.videoHeight;
     const ctx=c.getContext('2d');
     ctx.drawImage(video,0,0);
-    const imgData=ctx.getImageData(0,0,c.width,c.height);
-    const code=jsQR(imgData.data,imgData.width,imgData.height,{inversionAttempts:'attemptBoth'});
+    const img=ctx.getImageData(0,0,c.width,c.height);
+    const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});
     if(code&&code.data){
       stopScan();
       parseQR(code.data);
       return;
     }
-    const status=document.getElementById('scan-status');
-    if(status)status.textContent='読み取り中... ('+Math.floor(frameCount/2)+'フレーム)';
   }
   rafId=requestAnimationFrame(scanLoop);
 }
 
 function parseQR(raw){
-  scannedData=raw;
-  // 製番・型式・車番をパース試みる
   const seiban=raw.match(/製番[:\s]*([A-Za-z0-9\-]+)/);
   const katashiki=raw.match(/型式[:\s]*([A-Za-z0-9\-]+)/);
   const shaban=raw.match(/車番[:\s]*([A-Za-z0-9\-]+)/);
-  if(seiban) document.getElementById('seiban').value=seiban[1];
-  if(katashiki) document.getElementById('katashiki').value=katashiki[1];
-  if(shaban) document.getElementById('shaban').value=shaban[1];
+  if(seiban)document.getElementById('seiban').value=seiban[1];
+  if(katashiki)document.getElementById('katashiki').value=katashiki[1];
+  if(shaban)document.getElementById('shaban').value=shaban[1];
+  if(!seiban&&!katashiki&&!shaban)document.getElementById('seiban').value=raw;
   document.getElementById('result-val').textContent=raw;
   document.getElementById('result-box').style.display='block';
 }
@@ -242,14 +235,13 @@ function parseQR(raw){
 function stopScan(){
   if(rafId){cancelAnimationFrame(rafId);rafId=null;}
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
-  frameCount=0;
+  fc=0;
   document.getElementById('cam-wrap').style.display='none';
   document.getElementById('cancel-btn').style.display='none';
   document.getElementById('scan-btn').style.display='block';
 }
 
 function reScan(){
-  scannedData=null;
   document.getElementById('result-box').style.display='none';
   startScan();
 }
@@ -258,6 +250,13 @@ function sw(tab){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='input')||(i===1&&tab==='guide')));
   document.getElementById('p-input').classList.toggle('active',tab==='input');
   document.getElementById('p-guide').classList.toggle('active',tab==='guide');
+}
+
+function saveMail(){
+  const addr=document.getElementById('mail-to').value.trim();
+  if(addr)localStorage.setItem('mailTo',addr);
+  document.getElementById('mail-saved').style.display='block';
+  setTimeout(()=>document.getElementById('mail-saved').style.display='none',2000);
 }
 
 function doSubmit(){
@@ -277,7 +276,17 @@ function doSubmit(){
   const ngItems=all.filter(i=>st[i.id]==='ng').map(i=>i.label);
   const judge=ngItems.length>0?'要確認':'異常なし';
   const rem=document.getElementById('rem').value;
-  lastRow=[dt,seiban,katashiki,shaban,op,...checks,judge,rem].join('\t');
+  const row=[dt,seiban,katashiki,shaban,op,...checks,judge,rem].join('\t');
+  mailBody='【車両受け入れチェック記録】\n\n'
+    +'日時: '+dt+'\n'
+    +'製番: '+seiban+'\n'
+    +'型式: '+katashiki+'\n'
+    +'車番: '+shaban+'\n'
+    +'担当者: '+op+'\n'
+    +'判定: '+judge+'\n'
+    +(ngItems.length>0?'NG項目: '+ngItems.join('、')+'\n':'')
+    +(rem?'備考: '+rem+'\n':'')
+    +'\n--- Excel貼り付け用データ ---\n'+row;
   const judgeHtml=ngItems.length>0
     ?`<span class="ng-badge">要確認</span> ${ngItems.join('、')}`
     :`<span class="ok-badge">異常なし</span>`;
@@ -288,16 +297,21 @@ function doSubmit(){
   document.getElementById('result-wrap').classList.add('active');
 }
 
-function doCopy(){
-  navigator.clipboard.writeText(lastRow).then(()=>{
-    const btn=document.getElementById('copy-btn');
-    btn.textContent='コピー済み ✓';btn.classList.add('copied');
-    document.getElementById('copied-msg').style.display='block';
-  }).catch(()=>prompt('以下をコピーしてExcelに貼り付けてください：',lastRow));
+function sendMail(){
+  const to=localStorage.getItem('mailTo')||'';
+  if(!to){
+    alert('「メール設定」タブで送信先アドレスを設定してください');
+    sw('guide');
+    return;
+  }
+  const subject=encodeURIComponent('車両受け入れチェック記録');
+  const body=encodeURIComponent(mailBody);
+  window.location.href='mailto:'+to+'?subject='+subject+'&body='+body;
+  document.getElementById('sent-msg').style.display='block';
 }
 
 function doReset(){
-  st={};scannedData=null;lastRow='';
+  st={};mailBody='';
   document.getElementById('result-box').style.display='none';
   document.getElementById('seiban').value='';
   document.getElementById('katashiki').value='';
@@ -308,20 +322,18 @@ function doReset(){
   buildChecks(recItems,'rec');
   document.getElementById('form-wrap').style.display='block';
   document.getElementById('result-wrap').classList.remove('active');
-  const btn=document.getElementById('copy-btn');
-  btn.textContent='行データをコピー（Excelに貼り付け用）';
-  btn.classList.remove('copied');
-  document.getElementById('copied-msg').style.display='none';
+  document.getElementById('sent-msg').style.display='none';
   window.scrollTo(0,0);
 }
+
+// 保存済みアドレスを復元
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('mailTo');
+  if(saved)document.getElementById('mail-to').value=saved;
+});
 
 buildChecks(extItems,'ext');
 buildChecks(recItems,'rec');
 </script>
 </body>
 </html>
-
-
-  
-
- 
